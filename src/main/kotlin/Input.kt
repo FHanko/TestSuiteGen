@@ -14,7 +14,7 @@ enum class InputType() {
 }
 
 abstract class Input(val type: InputType, val name: String) {
-    abstract val component: () -> JComponent
+    abstract val component: JComponent
 
     companion object {
         fun readInputFields(project: Project, kotlinSource: String): List<Input> {
@@ -37,7 +37,9 @@ abstract class Input(val type: InputType, val name: String) {
 }
 
 class TextInput(name: String, val text: String): Input(InputType.TextInput, name) {
-    override val component = {
-        JBTextField(text)
+    override val component = JBTextField(text)
+
+    override fun toString(): String {
+        return component.text
     }
 }

@@ -26,7 +26,7 @@ class GenerateSuiteDialog(
         fields.forEach {
             when (it.type) {
                 InputType.TextInput -> {
-                    builder.addLabeledComponent("${it.name}:", it.component())
+                    builder.addLabeledComponent("${it.name}:", it.component)
                 }
             }
         }
