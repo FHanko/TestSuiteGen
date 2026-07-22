@@ -15,7 +15,7 @@ class EntryPointButton : AnAction(
         val kotlinSource = extractKotlin(project, templateFile)
         val fields = Input.readInputFields(project, kotlinSource)
 
-        val dialog = GenerateSuiteDialog(project, templateFile)
+        val dialog = GenerateSuiteDialog(project, templateFile, fields)
         if (dialog.showAndGet()) {                 // true only when Generate/OK was clicked
             //val values = dialog.values             // Map<fieldName, enteredValue>
             // execute template blocks with `values`, splice into XML, write output
