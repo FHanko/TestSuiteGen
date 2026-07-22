@@ -1,4 +1,4 @@
-package com.github.fhanko.template
+package template
 
 import EntryPointButton
 import com.intellij.openapi.command.WriteCommandAction

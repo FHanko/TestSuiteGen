@@ -1,4 +1,4 @@
-package com.github.fhanko.template
+package template
 
 import com.intellij.lang.injection.MultiHostInjector
 import com.intellij.lang.injection.MultiHostRegistrar
@@ -26,11 +26,11 @@ class XmlInjector : MultiHostInjector {
         if (matches.isEmpty()) return
 
         registrar.startInjecting(KotlinLanguage.INSTANCE)
-        for (m in matches) {
-            val inner = m.groups[1] ?: continue
+        matches.forEachIndexed { i, m ->
+            val inner = m.groups[1] ?: return@forEachIndexed
             registrar.addPlace(
-                null,
-                null,
+                KtScaffold.blockPrefix(i),
+                KtScaffold.blockPostfix(i),
                 context,
                 TextRange(inner.range.first, inner.range.last + 1)
             )

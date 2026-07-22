@@ -1,4 +1,4 @@
-package com.github.fhanko.template
+package template
 
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager

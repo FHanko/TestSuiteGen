@@ -1,5 +1,5 @@
-import com.github.fhanko.template.TemplateEdit
-import com.github.fhanko.template.extractKotlin
+import template.TemplateEdit
+import template.extractKotlin
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.IconLoader
