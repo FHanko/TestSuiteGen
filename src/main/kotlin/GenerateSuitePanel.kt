@@ -1,5 +1,6 @@
 package com.github.fhanko
 
+import com.github.fhanko.template.TemplateEdit
 import com.intellij.openapi.actionSystem.*
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.ui.popup.JBPopupFactory

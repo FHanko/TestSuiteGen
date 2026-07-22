@@ -1,16 +1,20 @@
-package com.github.fhanko
+package com.github.fhanko.template
 
 import com.intellij.lang.injection.MultiHostInjector
 import com.intellij.lang.injection.MultiHostRegistrar
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiLanguageInjectionHost
+import com.intellij.psi.PsiManager
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlText
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
-class XmlInjector : MultiHostInjector {
-    private val placeholder = Regex("""\{\{(.*?)}}""", RegexOption.DOT_MATCHES_ALL)
+private val placeholder = Regex("""\{\{(.*?)}}""", RegexOption.DOT_MATCHES_ALL)
 
+class XmlInjector : MultiHostInjector {
     override fun getLanguagesToInject(registrar: MultiHostRegistrar, context: PsiElement) {
         if (context !is XmlText || context !is PsiLanguageInjectionHost) return
         val vFile = context.containingFile?.virtualFile ?: return
@@ -36,4 +40,12 @@ class XmlInjector : MultiHostInjector {
 
     override fun elementsToInjectIn(): List<Class<out PsiElement>> =
         listOf(XmlText::class.java)
+}
+
+fun extractKotlin(project: Project, xmlFile: VirtualFile): String {
+    val psi = PsiManager.getInstance(project).findFile(xmlFile) ?: return ""
+    return PsiTreeUtil.findChildrenOfType(psi, XmlText::class.java)
+        .flatMap { placeholder.findAll(it.text).toList() }
+        .mapNotNull { it.groups[1]?.value }
+        .joinToString("\n")
 }

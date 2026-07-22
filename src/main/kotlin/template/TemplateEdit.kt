@@ -1,5 +1,6 @@
-package com.github.fhanko
+package com.github.fhanko.template
 
+import com.github.fhanko.GenerateSuitePanel
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
