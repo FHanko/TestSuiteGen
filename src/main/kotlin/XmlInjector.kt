@@ -13,6 +13,9 @@ class XmlInjector : MultiHostInjector {
 
     override fun getLanguagesToInject(registrar: MultiHostRegistrar, context: PsiElement) {
         if (context !is XmlText || context !is PsiLanguageInjectionHost) return
+        val vFile = context.containingFile?.virtualFile ?: return
+        if (!vFile.path.contains("/.testsuitegen/")) return
+
         val text = context.text
 
         val matches = placeholder.findAll(text).toList()
