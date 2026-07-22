@@ -1,5 +1,3 @@
-package com.github.fhanko
-
 import com.intellij.DynamicBundle
 import org.jetbrains.annotations.PropertyKey
 import java.util.function.Supplier

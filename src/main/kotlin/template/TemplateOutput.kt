@@ -6,7 +6,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtil
 
-class TemplateOutput {
+object TemplateOutput {
     fun openOutput(project: Project?) {
         val base = project?.guessProjectDir() ?: return
         WriteCommandAction.runWriteCommandAction(project) {
