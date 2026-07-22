@@ -10,10 +10,11 @@ class GenerateSuitePanel : AnAction(
     "Generate a testng.xml from a template",
     IconLoader.getIcon("/icons/debug.svg", GenerateSuitePanel::class.java)
 ), DumbAware {
-
     override fun actionPerformed(e: AnActionEvent) {
         val group = DefaultActionGroup().apply {
-            add(button("Edit Template")      { /* ... */ })
+            add(button("Edit Template")      {
+                TemplateEdit.openProjectTemplate(e.project)
+            })
             add(button("View Output")    { /* ... */ })
             add(button("Generate")   { /* ... */ })
         }
@@ -21,7 +22,7 @@ class GenerateSuitePanel : AnAction(
         val popup = JBPopupFactory.getInstance().createActionGroupPopup(
             "Generate Suite",
             group,
-            e.dataContext,
+        e.dataContext,
             JBPopupFactory.ActionSelectionAid.SPEEDSEARCH,
             true
         )
