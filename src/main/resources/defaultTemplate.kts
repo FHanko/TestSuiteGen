@@ -1,3 +1,5 @@
+@file:Import("import.kts")
+
 val input = TextInput("")
 
 """

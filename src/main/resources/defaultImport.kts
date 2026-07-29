@@ -1,1 +1,1 @@
-data class TextInput(val defaultText: String)
+data class TextInput(val initialText: String)

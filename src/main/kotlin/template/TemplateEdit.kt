@@ -9,7 +9,7 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 
 object TemplateEdit {
-    private val defaultFiles = listOf("/defaultTemplate.kts" to "template.kts", "/defaultImport.kts" to "import.kts")
+    private val defaultFiles = listOf("/defaultTemplate.kts" to "template.main.kts", "/defaultImport.kts" to "import.kts")
 
     private fun readFile(path: String): String {
         return EntryPointButton::class.java.getResourceAsStream(path)
