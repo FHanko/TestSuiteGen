@@ -17,7 +17,7 @@ class GenerateSuiteDialog(
 
     init {
         title = "Generate Suite"
-        setOKButtonText("Generate")     // OK button *is* Generate
+        setOKButtonText("Generate")
         init()
     }
 
@@ -34,7 +34,6 @@ class GenerateSuiteDialog(
         return builder.panel.apply { preferredSize = Dimension(500, preferredSize.height) }
     }
 
-    // Edit Template / View Output live here, beside OK & Cancel
     override fun createLeftSideActions(): Array<Action> = arrayOf(
         object : DialogWrapperAction("Edit Template") {
             override fun doAction(e: ActionEvent?) {

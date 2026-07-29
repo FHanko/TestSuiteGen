@@ -1,0 +1,1 @@
+data class TextInput(val defaultText: String)

@@ -9,20 +9,25 @@ import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 
 object TemplateEdit {
-    private val DEFAULT_TEMPLATE: String by lazy {
-        EntryPointButton::class.java.getResourceAsStream("/defaultTemplate.xml")
+    private val defaultFiles = listOf("/defaultTemplate.kts" to "template.kts", "/defaultImport.kts" to "import.kts")
+
+    private fun readFile(path: String): String {
+        return EntryPointButton::class.java.getResourceAsStream(path)
             ?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: ""
     }
 
     fun getOrCreateTemplate(project: Project): VirtualFile? {
         val base = project.guessProjectDir() ?: return null
-        return WriteCommandAction.runWriteCommandAction<VirtualFile?>(project) {
-            val dir = VfsUtil.createDirectoryIfMissing(base, ".testsuitegen")
-            dir.findChild("template.xml")
-                ?: dir.createChildData(this, "template.xml").also {
-                    VfsUtil.saveText(it, DEFAULT_TEMPLATE)
-                }
+        val files = defaultFiles.map { paths ->
+            WriteCommandAction.runWriteCommandAction<VirtualFile?>(project) {
+                val dir = VfsUtil.createDirectoryIfMissing(base, ".testsuitegen")
+                return@runWriteCommandAction dir.findChild(paths.second)
+                    ?: dir.createChildData(this, paths.second).also {
+                        VfsUtil.saveText(it, readFile(paths.first))
+                    }
+            }
         }
+        return files.firstOrNull()
     }
 
     fun openProjectTemplate(project: Project?) {

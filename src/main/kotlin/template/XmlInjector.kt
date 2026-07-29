@@ -2,6 +2,7 @@ package template
 
 import com.intellij.lang.injection.MultiHostInjector
 import com.intellij.lang.injection.MultiHostRegistrar
+import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
@@ -10,36 +11,36 @@ import com.intellij.psi.PsiLanguageInjectionHost
 import com.intellij.psi.PsiManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.xml.XmlText
-import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.psi.KtBlockExpression
+import org.jetbrains.kotlin.psi.KtLiteralStringTemplateEntry
+import org.jetbrains.kotlin.psi.KtScriptInitializer
+import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 
 private val placeholder = Regex("""\{\{(.*?)}}""", RegexOption.DOT_MATCHES_ALL)
 
+private val KtStringTemplateExpression.isUnusedStatement: Boolean
+    get() = parent is KtBlockExpression || parent is KtScriptInitializer
+
 class XmlInjector : MultiHostInjector {
     override fun getLanguagesToInject(registrar: MultiHostRegistrar, context: PsiElement) {
-        if (context !is XmlText || context !is PsiLanguageInjectionHost) return
-        val vFile = context.containingFile?.virtualFile ?: return
+        if (context !is KtStringTemplateExpression) return
+        if (!context.isUnusedStatement) return
+        val vFile = context.containingFile.virtualFile ?: return
         if (!vFile.path.contains("/.testsuitegen/")) return
 
-        val text = context.text
+        val literalEntries = context.entries.filterIsInstance<KtLiteralStringTemplateEntry>()
+        if (literalEntries.isEmpty()) return
 
-        val matches = placeholder.findAll(text).toList()
-        if (matches.isEmpty()) return
-
-        registrar.startInjecting(KotlinLanguage.INSTANCE)
-        matches.forEachIndexed { i, m ->
-            val inner = m.groups[1] ?: return@forEachIndexed
-            registrar.addPlace(
-                KtScaffold.blockPrefix(i),
-                KtScaffold.blockPostfix(i),
-                context,
-                TextRange(inner.range.first, inner.range.last + 1)
-            )
+        registrar.startInjecting(XMLLanguage.INSTANCE)
+        literalEntries.forEach { entry ->
+            val start = entry.startOffsetInParent
+            registrar.addPlace(null, null, context, TextRange(start, start + entry.textLength))
         }
         registrar.doneInjecting()
     }
 
     override fun elementsToInjectIn(): List<Class<out PsiElement>> =
-        listOf(XmlText::class.java)
+        listOf(KtStringTemplateExpression::class.java)
 }
 
 fun extractKotlin(project: Project, xmlFile: VirtualFile): String {
