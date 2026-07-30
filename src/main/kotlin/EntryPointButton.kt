@@ -4,6 +4,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.IconLoader
 import template.TemplateEdit
+import template.TemplateOutput
 
 class EntryPointButton : AnAction(
     "Generate TestNG Suite",
@@ -20,6 +21,9 @@ class EntryPointButton : AnAction(
             dialog.fields.forEach {
                 println(it)
             }
+            val map = dialog.fields.associate { it.name to it.toString() }
+            TemplateOutput.placeInputs(ktFile, map)
+            println(TemplateOutput.buildSource(ktFile, map))
         }
     }
 
