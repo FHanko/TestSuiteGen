@@ -1,6 +1,7 @@
 @file:Import("import.kts")
 
-val input = TextInput("")
+@TextInput
+val input = ""
 
 """
 <?xml version = "1.0" encoding = "UTF-8"?>

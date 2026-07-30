@@ -1,15 +1,12 @@
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiFileFactory
-import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiManager
 import com.intellij.ui.components.JBTextField
-import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.psiUtil.plainContent
 import javax.swing.JComponent
-import kotlin.jvm.java
 
-enum class InputType() {
+enum class InputType {
     TextInput
 }
 
@@ -17,26 +14,33 @@ abstract class Input(val type: InputType, val name: String) {
     abstract val component: JComponent
 
     companion object {
-        fun readInputFields(project: Project, kotlinSource: String): List<Input> {
-            val ktFile = PsiFileFactory.getInstance(project)
-                .createFileFromText("template.kts", KotlinFileType.INSTANCE, kotlinSource) as KtFile
+        fun readInputFields(project: Project, ktFile: VirtualFile): List<Input> {
+            val psi = PsiManager.getInstance(project).findFile(ktFile) as? KtFile ?: return emptyList()
+            val properties = psi.script?.blockExpression?.children?.filterIsInstance<KtProperty>() ?: return emptyList()
 
-            return PsiTreeUtil.findChildrenOfType(ktFile, KtProperty::class.java).mapNotNull { prop ->
-                val call = prop.initializer as? KtCallExpression ?: return@mapNotNull null
-                val type = InputType.entries.find { it.name == call.calleeExpression?.text } ?: return@mapNotNull null
-                val args = call.valueArguments.map { it.getArgumentExpression()?.text.orEmpty() }
+            return properties.mapNotNull { prop ->
+                val type = InputType.entries.find { t ->
+                    prop.annotationEntries.first { it.shortName?.asString() == t.name } != null
+                } ?: return@mapNotNull null
+                val value = literalValue(prop.initializer)
                 val name = prop.name ?: return@mapNotNull null
                 when (type) {
                     InputType.TextInput -> {
-                        TextInput(name, args.getOrNull(0) ?: "")
+                        TextInput(name, value ?: "")
                     }
                 }
             }
         }
+
+        private fun literalValue(expr: KtExpression?): String? = when (expr) {
+            is KtStringTemplateExpression -> if (expr.hasInterpolation()) null else expr.plainContent
+            is KtConstantExpression -> expr.text
+            else -> null
+        }
     }
 }
 
-class TextInput(name: String, val text: String): Input(InputType.TextInput, name) {
+class TextInput(name: String, text: String): Input(InputType.TextInput, name) {
     override val component = JBTextField(text)
 
     override fun toString(): String {

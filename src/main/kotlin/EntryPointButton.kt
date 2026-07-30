@@ -1,8 +1,9 @@
-import template.TemplateEdit
-import template.extractKotlin
-import com.intellij.openapi.actionSystem.*
+import com.intellij.openapi.actionSystem.ActionUpdateThread
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.util.IconLoader
+import template.TemplateEdit
 
 class EntryPointButton : AnAction(
     "Generate TestNG Suite",
@@ -12,8 +13,7 @@ class EntryPointButton : AnAction(
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
         val templateFile = TemplateEdit.getOrCreateTemplate(project) ?: return
-        val kotlinSource = extractKotlin(project, templateFile)
-        val fields = Input.readInputFields(project, kotlinSource)
+        val fields = Input.readInputFields(project, templateFile)
 
         val dialog = GenerateSuiteDialog(project, templateFile, fields)
         if (dialog.showAndGet()) {

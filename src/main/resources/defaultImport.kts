@@ -1,1 +1,2 @@
-data class TextInput(val initialText: String)
+@Target(AnnotationTarget.PROPERTY)
+annotation class TextInput
