@@ -10,13 +10,12 @@ enum class InputType {
     TextInput
 }
 
-abstract class Input(val type: InputType, val name: String) {
+abstract class Input(val type: InputType, val name: String, val property: KtProperty) {
     abstract val component: JComponent
 
     companion object {
-        fun readInputFields(project: Project, ktFile: VirtualFile): List<Input> {
-            val psi = PsiManager.getInstance(project).findFile(ktFile) as? KtFile ?: return emptyList()
-            val properties = psi.script?.blockExpression?.children?.filterIsInstance<KtProperty>() ?: return emptyList()
+        fun readInputFields(ktFile: KtFile): List<Input> {
+            val properties = ktFile.script?.blockExpression?.children?.filterIsInstance<KtProperty>() ?: return emptyList()
 
             return properties.mapNotNull { prop ->
                 val type = InputType.entries.find { t ->
@@ -26,7 +25,7 @@ abstract class Input(val type: InputType, val name: String) {
                 val name = prop.name ?: return@mapNotNull null
                 when (type) {
                     InputType.TextInput -> {
-                        TextInput(name, value ?: "")
+                        TextInput(name, value ?: "", prop)
                     }
                 }
             }
@@ -40,7 +39,7 @@ abstract class Input(val type: InputType, val name: String) {
     }
 }
 
-class TextInput(name: String, text: String): Input(InputType.TextInput, name) {
+class TextInput(name: String, text: String, property: KtProperty): Input(InputType.TextInput, name, property) {
     override val component = JBTextField(text)
 
     override fun toString(): String {

@@ -7,6 +7,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiManager
+import org.jetbrains.kotlin.psi.KtFile
 
 object TemplateEdit {
     private val defaultFiles = listOf("/defaultTemplate.kts" to "template.main.kts", "/defaultImport.kts" to "import.kts")
@@ -16,7 +18,7 @@ object TemplateEdit {
             ?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: ""
     }
 
-    fun getOrCreateTemplate(project: Project): VirtualFile? {
+    fun getOrCreateTemplate(project: Project): KtFile? {
         val base = project.guessProjectDir() ?: return null
         val files = defaultFiles.map { paths ->
             WriteCommandAction.runWriteCommandAction<VirtualFile?>(project) {
@@ -27,12 +29,14 @@ object TemplateEdit {
                     }
             }
         }
-        return files.firstOrNull()
+        return files.firstOrNull()?.let {
+            PsiManager.getInstance(project).findFile(it) as? KtFile
+        }
     }
 
     fun openProjectTemplate(project: Project?) {
         val proj = project ?: return
         val file = getOrCreateTemplate(proj) ?: return
-        FileEditorManager.getInstance(proj).openFile(file, true)
+        FileEditorManager.getInstance(proj).openFile(file.virtualFile, true)
     }
 }

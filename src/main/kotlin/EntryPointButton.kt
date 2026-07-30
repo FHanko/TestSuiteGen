@@ -12,10 +12,10 @@ class EntryPointButton : AnAction(
 ), DumbAware {
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
-        val templateFile = TemplateEdit.getOrCreateTemplate(project) ?: return
-        val fields = Input.readInputFields(project, templateFile)
+        val ktFile = TemplateEdit.getOrCreateTemplate(project) ?: return
+        val fields = Input.readInputFields(ktFile)
 
-        val dialog = GenerateSuiteDialog(project, templateFile, fields)
+        val dialog = GenerateSuiteDialog(project, ktFile.virtualFile, fields)
         if (dialog.showAndGet()) {
             dialog.fields.forEach {
                 println(it)
