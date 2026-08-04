@@ -1,15 +1,19 @@
 package template
 
-import andel.text.Text
+import com.intellij.lang.xml.XMLLanguage
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.psi.PsiFileFactory
+import com.intellij.psi.codeStyle.CodeStyleManager
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtScriptInitializer
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import kotlin.collections.plusAssign
 import kotlin.collections.sortedByDescending
@@ -52,17 +56,28 @@ object TemplateOutput {
         fileWithReplacements(file, replacements).let { Template.writeFile(file.project, file.virtualFile, it) }
     }
 
-    fun buildSource(file: KtFile, inputs: Map<String, String>): String {
+    fun buildSource(file: KtFile) {
         val edits = mutableListOf<Pair<TextRange, String>>()
 
         file.script?.blockExpression?.children
-            ?.filterIsInstance<KtExpression>()
+            ?.mapNotNull { (it as? KtScriptInitializer)?.body ?: it as? KtExpression }
             ?.filter { isEmittable(it) }
             ?.forEach { edits += it.textRange to "emit(${it.text})" }
 
-        return edits.sortedByDescending { it.first.startOffset }
-            .fold(StringBuilder(file.text)) { sb, (range, text) ->
-                sb.replace(range.startOffset, range.endOffset, text)
-            }.toString()
+        runBlocking {
+            val result = TemplateRunner(fileWithReplacements(file, edits)).run()
+            val xml = result?.render() ?: return@runBlocking
+
+            val project = file.project
+            val psi = PsiFileFactory.getInstance(project)
+                .createFileFromText("suite.xml", XMLLanguage.INSTANCE, xml)
+            CodeStyleManager.getInstance(project).reformat(psi)
+            val formatted = psi.text
+
+            WriteCommandAction.runWriteCommandAction(project, "Generate Suite", null, {
+                val out = file.containingDirectory?.virtualFile?.createChildData(this, "suite.xml") ?: return@runWriteCommandAction
+                VfsUtil.saveText(out, formatted)
+            })
+        }
     }
 }

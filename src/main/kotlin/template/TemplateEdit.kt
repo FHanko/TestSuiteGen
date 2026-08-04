@@ -1,7 +1,6 @@
 package template
 
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtil

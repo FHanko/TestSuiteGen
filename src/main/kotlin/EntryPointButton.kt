@@ -23,7 +23,7 @@ class EntryPointButton : AnAction(
             }
             val map = dialog.fields.associate { it.name to it.toString() }
             TemplateOutput.placeInputs(ktFile, map)
-            println(TemplateOutput.buildSource(ktFile, map))
+            println(TemplateOutput.buildSource(ktFile))
         }
     }
 
