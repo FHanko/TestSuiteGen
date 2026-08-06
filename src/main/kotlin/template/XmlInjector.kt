@@ -18,7 +18,7 @@ class XmlInjector : MultiHostInjector {
         if (context !is KtStringTemplateExpression) return
         if (!context.isUnusedStatement) return
         val vFile = context.containingFile.virtualFile ?: return
-        if (!vFile.path.contains(Template.templateDir)) return
+        if (!vFile.path.contains(Template.TEMPLATE_DIR)) return
 
         val literalEntries = context.entries.filterIsInstance<KtLiteralStringTemplateEntry>()
         if (literalEntries.isEmpty()) return

@@ -25,7 +25,7 @@ object TemplateOutput {
     fun openOutput(project: Project?) {
         val base = project?.guessProjectDir() ?: return
         WriteCommandAction.runWriteCommandAction(project) {
-            val dir = VfsUtil.createDirectoryIfMissing(base, Template.templateDir)
+            val dir = VfsUtil.createDirectoryIfMissing(base, Template.TEMPLATE_DIR)
             val file = dir.findChild("suite.xml")
             file?.let { FileEditorManager.getInstance(project).openFile(it, true) }
         }
@@ -72,6 +72,7 @@ object TemplateOutput {
 
         val script = import +
             fileWithReplacements(file, edits).substringAfter('\n') + """
+                
                 val _output = xmlParts.joinToString(separator = "\n")
                 postGenerate(_output)
                 _output
@@ -91,7 +92,7 @@ object TemplateOutput {
                 CodeStyleManager.getInstance(project).reformat(psi)
 
                 val base = project.guessProjectDir() ?: error("No project directory")
-                val dir = VfsUtil.createDirectoryIfMissing(base, Template.templateDir)
+                val dir = VfsUtil.createDirectoryIfMissing(base, Template.TEMPLATE_DIR)
                 val out = dir.findChild("suite.xml")?.takeIf { it.isValid }
                     ?: dir.createChildData(this, "suite.xml")
                 VfsUtil.saveText(out, psi.text)

@@ -8,7 +8,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 
 object Template {
-    const val templateDir = ".testsuitegen"
+    const val TEMPLATE_DIR = ".testsuitegen"
 
     fun readFile(path: String): String {
         return EntryPointButton::class.java.getResourceAsStream(path)

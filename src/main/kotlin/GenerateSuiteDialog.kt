@@ -3,6 +3,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.util.ui.FormBuilder
+import template.TemplateOutput
 import java.awt.Dimension
 import java.awt.event.ActionEvent
 import javax.swing.Action
@@ -43,7 +44,8 @@ class GenerateSuiteDialog(
         },
         object : DialogWrapperAction("View Output") {
             override fun doAction(e: ActionEvent?) {
-
+                TemplateOutput.openOutput(project)
+                close(CANCEL_EXIT_CODE)
             }
         }
     )
