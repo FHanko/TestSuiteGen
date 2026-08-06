@@ -8,17 +8,16 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VfsUtilCore
-import com.intellij.openapi.vfs.resolveFromRootOrRelative
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.codeStyle.CodeStyleManager
-import com.jetbrains.rd.util.string.printToString
-import kotlinx.coroutines.runBlocking
+import com.intellij.testFramework.LightVirtualFile
+import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtScriptInitializer
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
-import java.nio.file.Files
 import kotlin.collections.plusAssign
 import kotlin.collections.sortedByDescending
 
@@ -26,7 +25,7 @@ object TemplateOutput {
     fun openOutput(project: Project?) {
         val base = project?.guessProjectDir() ?: return
         WriteCommandAction.runWriteCommandAction(project) {
-            val dir = VfsUtil.createDirectoryIfMissing(base, ".testsuitegen")
+            val dir = VfsUtil.createDirectoryIfMissing(base, Template.templateDir)
             val file = dir.findChild("suite.xml")
             file?.let { FileEditorManager.getInstance(project).openFile(it, true) }
         }
@@ -60,7 +59,7 @@ object TemplateOutput {
         fileWithReplacements(file, replacements).let { Template.writeFile(file.project, file.virtualFile, it) }
     }
 
-    fun buildSource(file: KtFile) {
+    fun buildSource(file: KtFile): VirtualFile {
         val edits = mutableListOf<Pair<TextRange, String>>()
 
         file.script?.blockExpression?.children
@@ -73,27 +72,30 @@ object TemplateOutput {
 
         val script = import +
             fileWithReplacements(file, edits).substringAfter('\n') + """
-                preGenerate()
-                postGenerate(xmlParts.joinToString(separator = "\n"))
-                xmlParts.joinToString(separator = "\n")
+                val _output = xmlParts.joinToString(separator = "\n")
+                postGenerate(_output)
+                _output
             """.trimIndent()
 
-        println(script)
+        return LightVirtualFile("generated.kts", KotlinFileType.INSTANCE, script)
+    }
 
-        runBlocking {
-            val result = TemplateRunner.run(script)
-            println(result)
+    fun writeSuite(project: Project, script: VirtualFile) {
+        val result = TemplateRunner.run(VfsUtilCore.loadText(script))
 
-            val project = file.project
-            val psi = PsiFileFactory.getInstance(project)
-                .createFileFromText("suite.xml", XMLLanguage.INSTANCE, result)
-            CodeStyleManager.getInstance(project).reformat(psi)
-            val formatted = psi.text
+        WriteCommandAction.writeCommandAction(project)
+            .withName("Generate Suite")
+            .compute<VirtualFile, RuntimeException> {
+                val psi = PsiFileFactory.getInstance(project)
+                    .createFileFromText("suite.xml", XMLLanguage.INSTANCE, result)
+                CodeStyleManager.getInstance(project).reformat(psi)
 
-            WriteCommandAction.runWriteCommandAction(project, "Generate Suite", null, {
-                val out = file.containingDirectory?.virtualFile?.createChildData(this, "suite.xml") ?: return@runWriteCommandAction
-                VfsUtil.saveText(out, formatted)
-            })
-        }
+                val base = project.guessProjectDir() ?: error("No project directory")
+                val dir = VfsUtil.createDirectoryIfMissing(base, Template.templateDir)
+                val out = dir.findChild("suite.xml")?.takeIf { it.isValid }
+                    ?: dir.createChildData(this, "suite.xml")
+                VfsUtil.saveText(out, psi.text)
+                out
+            }
     }
 }

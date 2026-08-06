@@ -7,5 +7,4 @@ fun emit(value: String) {
     xmlParts.add(value)
 }
 
-var preGenerate: () -> Unit = {  }
 var postGenerate: (String) -> Unit = {  }

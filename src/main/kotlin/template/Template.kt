@@ -8,6 +8,8 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
 
 object Template {
+    const val templateDir = ".testsuitegen"
+
     fun readFile(path: String): String {
         return EntryPointButton::class.java.getResourceAsStream(path)
             ?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: ""

@@ -20,7 +20,8 @@ class EntryPointButton : AnAction(
         if (dialog.showAndGet()) {
             val map = dialog.fields.associate { it.name to it.toString() }
             TemplateOutput.placeInputs(ktFile, map)
-            println(TemplateOutput.buildSource(ktFile))
+            val script = TemplateOutput.buildSource(ktFile)
+            TemplateOutput.writeSuite(project, script)
         }
     }
 

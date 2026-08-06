@@ -15,7 +15,7 @@ object TemplateEdit {
         val base = project.guessProjectDir() ?: return null
         val files = defaultFiles.map { paths ->
             WriteCommandAction.runWriteCommandAction<VirtualFile?>(project) {
-                val dir = VfsUtil.createDirectoryIfMissing(base, ".testsuitegen")
+                val dir = VfsUtil.createDirectoryIfMissing(base, Template.templateDir)
                 return@runWriteCommandAction dir.findChild(paths.second)
                     ?: dir.createChildData(this, paths.second).also {
                         VfsUtil.saveText(it, Template.readFile(paths.first))
