@@ -18,10 +18,4 @@ dependencies {
         // Add plugin dependencies for compilation here:
         bundledPlugin("org.jetbrains.kotlin")
     }
-
-    val kotlinVersion = "2.3.10"
-    //implementation ("org.jetbrains.kotlin:kotlin-scripting-common:${kotlinVersion}")
-    //implementation("org.jetbrains.kotlin:kotlin-scripting-jvm:${kotlinVersion}")
-    implementation("org.jetbrains.kotlin:kotlin-scripting-jvm-host:${kotlinVersion}")
-    compileOnly ("org.jetbrains.kotlin:kotlin-compiler-embeddable:${kotlinVersion}")
 }

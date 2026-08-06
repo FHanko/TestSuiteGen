@@ -18,9 +18,6 @@ class EntryPointButton : AnAction(
 
         val dialog = GenerateSuiteDialog(project, ktFile.virtualFile, fields)
         if (dialog.showAndGet()) {
-            dialog.fields.forEach {
-                println(it)
-            }
             val map = dialog.fields.associate { it.name to it.toString() }
             TemplateOutput.placeInputs(ktFile, map)
             println(TemplateOutput.buildSource(ktFile))

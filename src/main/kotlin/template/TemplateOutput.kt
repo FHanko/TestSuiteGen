@@ -7,14 +7,18 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VfsUtilCore
+import com.intellij.openapi.vfs.resolveFromRootOrRelative
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.codeStyle.CodeStyleManager
+import com.jetbrains.rd.util.string.printToString
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtScriptInitializer
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
+import java.nio.file.Files
 import kotlin.collections.plusAssign
 import kotlin.collections.sortedByDescending
 
@@ -64,13 +68,25 @@ object TemplateOutput {
             ?.filter { isEmittable(it) }
             ?.forEach { edits += it.textRange to "emit(${it.text})" }
 
+        val import = file.virtualFile.parent?.findChild("import.kts")
+            .takeIf { it?.exists() == true }?.let { VfsUtilCore.loadText(it) }
+
+        val script = import +
+            fileWithReplacements(file, edits).substringAfter('\n') + """
+                preGenerate()
+                postGenerate(xmlParts.joinToString(separator = "\n"))
+                xmlParts.joinToString(separator = "\n")
+            """.trimIndent()
+
+        println(script)
+
         runBlocking {
-            val result = TemplateRunner(fileWithReplacements(file, edits)).run()
-            val xml = result?.render() ?: return@runBlocking
+            val result = TemplateRunner.run(script)
+            println(result)
 
             val project = file.project
             val psi = PsiFileFactory.getInstance(project)
-                .createFileFromText("suite.xml", XMLLanguage.INSTANCE, xml)
+                .createFileFromText("suite.xml", XMLLanguage.INSTANCE, result)
             CodeStyleManager.getInstance(project).reformat(psi)
             val formatted = psi.text
 
